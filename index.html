@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>SmartSafe Campus</title>
+<title>SmartSafe Campus Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <style>
@@ -22,50 +22,84 @@ body {
   background: var(--bg);
 }
 
-/* ---------- MOBILE FIRST ---------- */
+/* Layout */
+.dashboard {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--dark);
+  color: white;
+  padding: 20px;
+}
+
+.sidebar h2 {
+  color: var(--primary);
+  margin-bottom: 25px;
+}
+
+.sidebar a {
+  display: block;
+  color: #ddd;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.sidebar a:hover {
+  background: #222;
+}
+
+/* Main */
+.main {
+  display: flex;
+  flex-direction: column;
+}
 
 /* Topbar */
 .topbar {
   background: white;
-  padding: 14px 16px;
-  text-align: center;
-  font-weight: 600;
+  padding: 16px 20px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* Layout */
+/* Content */
 .content {
-  padding: 12px;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
 }
 
-/* Card */
+/* Cards */
 .card {
   background: var(--card);
   border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 16px;
+  padding: 16px;
   box-shadow: 0 6px 14px rgba(0,0,0,0.08);
 }
 
 /* Inputs */
 input {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   margin-top: 8px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid #ccc;
-  font-size: 16px;
 }
 
 /* Buttons */
 button {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   border: none;
-  border-radius: 14px;
-  font-size: 16px;
+  border-radius: 10px;
+  font-size: 15px;
   cursor: pointer;
-  margin-top: 10px;
 }
 
 .btn-location {
@@ -76,20 +110,21 @@ button {
 .btn-save {
   background: #4caf50;
   color: white;
+  margin-top: 8px;
 }
 
 .btn-sos {
   background: var(--primary);
   color: white;
   font-weight: bold;
-  font-size: 18px;
+  margin-top: 12px;
 }
 
 /* Map */
 #map {
   width: 100%;
-  height: 300px;
-  border-radius: 14px;
+  height: 360px;
+  border-radius: 12px;
   margin-top: 12px;
 }
 
@@ -98,64 +133,9 @@ button {
   background: #fdecea;
   border-left: 5px solid var(--primary);
   padding: 10px;
-  border-radius: 10px;
+  border-radius: 8px;
   margin-bottom: 10px;
   font-size: 14px;
-}
-
-/* ---------- DESKTOP ENHANCEMENTS ---------- */
-@media (min-width: 900px) {
-
-  body {
-    overflow: hidden;
-  }
-
-  .dashboard {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    height: 100vh;
-  }
-
-  /* Sidebar */
-  .sidebar {
-    background: var(--dark);
-    color: white;
-    padding: 20px;
-  }
-
-  .sidebar h2 {
-    color: var(--primary);
-    margin-bottom: 25px;
-  }
-
-  .sidebar a {
-    display: block;
-    color: #ddd;
-    text-decoration: none;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-  }
-
-  .sidebar a:hover {
-    background: #222;
-  }
-
-  .main {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-    padding: 20px;
-  }
-
-  #map {
-    height: 360px;
-  }
 }
 </style>
 </head>
@@ -164,7 +144,7 @@ button {
 
 <div class="dashboard">
 
-  <!-- SIDEBAR (Desktop only) -->
+  <!-- SIDEBAR -->
   <div class="sidebar">
     <h2>SmartSafe</h2>
     <a href="#">📍 Live Map</a>
@@ -177,7 +157,7 @@ button {
 
     <!-- TOPBAR -->
     <div class="topbar">
-      🚨 SmartSafe Campus
+      <h3>Campus Safety Monitoring Dashboard</h3>
     </div>
 
     <!-- CONTENT -->
@@ -193,12 +173,16 @@ button {
         <input id="lon" placeholder="Longitude" value="88.363895">
 
         <h4>📞 Emergency Contact</h4>
-        <input id="emergencyName" placeholder="Contact Name">
+        <input id="emergencyName" placeholder="Contact Name (e.g. Mom)">
         <input id="emergencyPhone" placeholder="Phone (+91XXXXXXXXXX)">
 
-        <button class="btn-save" onclick="saveEmergencyContact()">💾 Save Contact</button>
+        <button class="btn-save" onclick="saveEmergencyContact()">
+          💾 Save Emergency Contact
+        </button>
 
-        <button class="btn-sos" onclick="sendSOS()">🚨 SEND SOS</button>
+        <button class="btn-sos" onclick="sendSOS()">
+          🚨 SEND SOS & ALERT CONTACT
+        </button>
 
         <div id="map"></div>
       </div>
@@ -221,13 +205,13 @@ let map;
 let userMarker;
 let sosData = JSON.parse(localStorage.getItem("sosData")) || [];
 
-// Load saved contact
+/* Load saved contact */
 document.getElementById("emergencyName").value =
   localStorage.getItem("emergencyName") || "";
 document.getElementById("emergencyPhone").value =
   localStorage.getItem("emergencyPhone") || "";
 
-// Init map
+/* Init Map */
 function initMap() {
   const center = { lat: 22.572646, lng: 88.363895 };
 
@@ -245,30 +229,55 @@ function initMap() {
   sosData.forEach(addSOSMarker);
   renderAdmin();
 }
+
 initMap();
 
+/* Location */
 function getLocation() {
   navigator.geolocation.getCurrentPosition(pos => {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
+
     document.getElementById("lat").value = lat;
     document.getElementById("lon").value = lon;
+
     map.setCenter({ lat, lng: lon });
     userMarker.setPosition({ lat, lng: lon });
-  });
+  }, () => alert("Location permission denied"));
 }
 
+/* Save Emergency Contact */
 function saveEmergencyContact() {
-  localStorage.setItem("emergencyName", emergencyName.value);
-  localStorage.setItem("emergencyPhone", emergencyPhone.value);
+  const name = document.getElementById("emergencyName").value;
+  const phone = document.getElementById("emergencyPhone").value;
+
+  if (!phone) {
+    alert("Enter emergency contact number");
+    return;
+  }
+
+  localStorage.setItem("emergencyName", name);
+  localStorage.setItem("emergencyPhone", phone);
+
   alert("✅ Emergency contact saved");
 }
 
+/* Send SOS */
 function sendSOS() {
-  const lat = parseFloat(latInput.value);
-  const lon = parseFloat(lonInput.value);
+  const lat = parseFloat(document.getElementById("lat").value);
+  const lon = parseFloat(document.getElementById("lon").value);
 
-  const alertObj = { lat, lon, time: new Date().toLocaleString() };
+  if (isNaN(lat) || isNaN(lon)) {
+    alert("Invalid location");
+    return;
+  }
+
+  const alertObj = {
+    lat,
+    lon,
+    time: new Date().toLocaleString()
+  };
+
   sosData.push(alertObj);
   localStorage.setItem("sosData", JSON.stringify(sosData));
 
@@ -276,12 +285,26 @@ function sendSOS() {
   renderAdmin();
 
   const phone = localStorage.getItem("emergencyPhone");
+  const name = localStorage.getItem("emergencyName") || "Emergency Contact";
+
   if (phone) {
-    const msg = `🚨 SOS ALERT!\nhttps://maps.google.com/?q=${lat},${lon}`;
-    window.open(`https://wa.me/${phone.replace("+","")}?text=${encodeURIComponent(msg)}`);
+    const message =
+      `🚨 SOS ALERT!\nI need help.\n\n` +
+      `📍 Location: https://maps.google.com/?q=${lat},${lon}\n` +
+      `🕒 Time: ${alertObj.time}`;
+
+    const whatsapp =
+      `https://wa.me/${phone.replace("+","")}?text=${encodeURIComponent(message)}`;
+
+    if (confirm(`Send SOS message to ${name}?`)) {
+      window.open(whatsapp, "_blank");
+    }
   }
+
+  alert("🚨 SOS ACTIVATED");
 }
 
+/* Map Marker */
 function addSOSMarker(a) {
   new google.maps.Marker({
     position: { lat: a.lat, lng: a.lon },
@@ -290,12 +313,15 @@ function addSOSMarker(a) {
   });
 }
 
+/* Admin Dashboard */
 function renderAdmin() {
-  adminAlerts.innerHTML = "";
+  const box = document.getElementById("adminAlerts");
+  box.innerHTML = "";
+
   sosData.slice().reverse().forEach(a => {
-    adminAlerts.innerHTML += `
+    box.innerHTML += `
       <div class="alert">
-        🚨 <b>SOS</b><br>
+        🚨 <b>SOS Alert</b><br>
         📍 ${a.lat.toFixed(5)}, ${a.lon.toFixed(5)}<br>
         🕒 ${a.time}
       </div>
@@ -306,4 +332,3 @@ function renderAdmin() {
 
 </body>
 </html>
-
