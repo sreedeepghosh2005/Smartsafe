@@ -3,7 +3,7 @@
 **SmartSafe Campus** is a web-based **campus safety and emergency response system** designed to help students quickly report emergencies, share live location, and alert both campus authorities and personal emergency contacts.
 
 🔗 **Live Demo:**  
-👉 https://sreedeepghosh2005.github.io/Smartsafe/
+👉  https://sreedeepghosh2005.github.io/Smartsafe/
 
 ---
 
