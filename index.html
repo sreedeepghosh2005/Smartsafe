@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SmartSafe Campus Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+:root {
+  --primary: #d32f2f;
+  --secondary: #1976d2;
+  --bg: #f2f4f7;
+  --card: #ffffff;
+  --dark: #111;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+}
+
+/* Layout */
+.dashboard {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--dark);
+  color: white;
+  padding: 20px;
+}
+
+.sidebar h2 {
+  color: var(--primary);
+  margin-bottom: 25px;
+}
+
+.sidebar a {
+  display: block;
+  color: #ddd;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.sidebar a:hover {
+  background: #222;
+}
+
+/* Main */
+.main {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topbar */
+.topbar {
+  background: white;
+  padding: 16px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Content */
+.content {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+/* Inputs */
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.btn-location {
+  background: var(--secondary);
+  color: white;
+}
+
+.btn-save {
+  background: #4caf50;
+  color: white;
+  margin-top: 8px;
+}
+
+.btn-sos {
+  background: var(--primary);
+  color: white;
+  font-weight: bold;
+  margin-top: 12px;
+}
+
+/* Map */
+#map {
+  width: 100%;
+  height: 360px;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+/* Alerts */
+.alert {
+  background: #fdecea;
+  border-left: 5px solid var(--primary);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>SmartSafe</h2>
+    <a href="#">📍 Live Map</a>
+    <a href="#">🚨 SOS Alerts</a>
+    <a href="#">🧑‍💼 Admin Dashboard</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <h3>Campus Safety Monitoring Dashboard</h3>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- USER PANEL -->
+      <div class="card">
+        <h3>📍 User Panel</h3>
+
+        <button class="btn-location" onclick="getLocation()">Use My Location</button>
+
+        <input id="lat" placeholder="Latitude" value="22.572646">
+        <input id="lon" placeholder="Longitude" value="88.363895">
+
+        <h4>📞 Emergency Contact</h4>
+        <input id="emergencyName" placeholder="Contact Name (e.g. Mom)">
+        <input id="emergencyPhone" placeholder="Phone (+91XXXXXXXXXX)">
+
+        <button class="btn-save" onclick="saveEmergencyContact()">
+          💾 Save Emergency Contact
+        </button>
+
+        <button class="btn-sos" onclick="sendSOS()">
+          🚨 SEND SOS & ALERT CONTACT
+        </button>
+
+        <div id="map"></div>
+      </div>
+
+      <!-- ADMIN PANEL -->
+      <div class="card">
+        <h3>🧑‍💼 Admin SOS Alerts</h3>
+        <div id="adminAlerts"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Google Maps -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+
+<script>
+let map;
+let userMarker;
+let sosData = JSON.parse(localStorage.getItem("sosData")) || [];
+
+/* Load saved contact */
+document.getElementById("emergencyName").value =
+  localStorage.getItem("emergencyName") || "";
+document.getElementById("emergencyPhone").value =
+  localStorage.getItem("emergencyPhone") || "";
+
+/* Init Map */
+function initMap() {
+  const center = { lat: 22.572646, lng: 88.363895 };
+
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 16,
+    center
+  });
+
+  userMarker = new google.maps.Marker({
+    position: center,
+    map,
+    icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+  });
+
+  sosData.forEach(addSOSMarker);
+  renderAdmin();
+}
+
+initMap();
+
+/* Location */
+function getLocation() {
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+
+    document.getElementById("lat").value = lat;
+    document.getElementById("lon").value = lon;
+
+    map.setCenter({ lat, lng: lon });
+    userMarker.setPosition({ lat, lng: lon });
+  }, () => alert("Location permission denied"));
+}
+
+/* Save Emergency Contact */
+function saveEmergencyContact() {
+  const name = document.getElementById("emergencyName").value;
+  const phone = document.getElementById("emergencyPhone").value;
+
+  if (!phone) {
+    alert("Enter emergency contact number");
+    return;
+  }
+
+  localStorage.setItem("emergencyName", name);
+  localStorage.setItem("emergencyPhone", phone);
+
+  alert("✅ Emergency contact saved");
+}
+
+/* Send SOS */
+function sendSOS() {
+  const lat = parseFloat(document.getElementById("lat").value);
+  const lon = parseFloat(document.getElementById("lon").value);
+
+  if (isNaN(lat) || isNaN(lon)) {
+    alert("Invalid location");
+    return;
+  }
+
+  const alertObj = {
+    lat,
+    lon,
+    time: new Date().toLocaleString()
+  };
+
+  sosData.push(alertObj);
+  localStorage.setItem("sosData", JSON.stringify(sosData));
+
+  addSOSMarker(alertObj);
+  renderAdmin();
+
+  const phone = localStorage.getItem("emergencyPhone");
+  const name = localStorage.getItem("emergencyName") || "Emergency Contact";
+
+  if (phone) {
+    const message =
+      `🚨 SOS ALERT!\nI need help.\n\n` +
+      `📍 Location: https://maps.google.com/?q=${lat},${lon}\n` +
+      `🕒 Time: ${alertObj.time}`;
+
+    const whatsapp =
+      `https://wa.me/${phone.replace("+","")}?text=${encodeURIComponent(message)}`;
+
+    if (confirm(`Send SOS message to ${name}?`)) {
+      window.open(whatsapp, "_blank");
+    }
+  }
+
+  alert("🚨 SOS ACTIVATED");
+}
+
+/* Map Marker */
+function addSOSMarker(a) {
+  new google.maps.Marker({
+    position: { lat: a.lat, lng: a.lon },
+    map,
+    icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+  });
+}
+
+/* Admin Dashboard */
+function renderAdmin() {
+  const box = document.getElementById("adminAlerts");
+  box.innerHTML = "";
+
+  sosData.slice().reverse().forEach(a => {
+    box.innerHTML += `
+      <div class="alert">
+        🚨 <b>SOS Alert</b><br>
+        📍 ${a.lat.toFixed(5)}, ${a.lon.toFixed(5)}<br>
+        🕒 ${a.time}
+      </div>
+    `;
+  });
+}
+</script>
+
+</body>
+</html>
